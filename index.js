@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /*
   Hikki
@@ -19,12 +19,11 @@
   ```
 */
 
-var
-  fs = require('fs'),
-  outputFile = require('output-file'),
-  isWritable = require('isstream').isWritable,
-  path = require('path'),
-  extend = require('extend');
+var fs = require("fs"),
+  outputFile = require("output-file"),
+  isWritable = require("isstream").isWritable,
+  path = require("path"),
+  extend = require("extend");
 
 module.exports = Hikki;
 
@@ -53,22 +52,22 @@ function Hikki(options, callback) {
   options = options || {};
   if (!Array.isArray(options.files)) {
     if (callback) {
-      callback(new Error('Need the option "files" to be able to create documentation.'));
+      callback(
+        new Error('Need the option "files" to be able to create documentation.')
+      );
     }
     return this;
   }
 
-  var
-    _this = this,
+  var _this = this,
     readFile;
 
   this.options = options;
   this.callback = callback || function noop() {};
   this.markdownFiles = [];
   this.current = 0;
-  this.files = options.files
-    .filter(Hikki.excludeFiles(options.exclude));
-  this.transforms = [require('./lib/hikki-js')]; // loads in default transform
+  this.files = options.files.filter(Hikki.excludeFiles(options.exclude));
+  this.transforms = [require("./lib/hikki-js")]; // loads in default transform
 
   if (options.logger) {
     if (isWritable(options.logger)) {
@@ -84,12 +83,16 @@ function Hikki(options, callback) {
     }
   }
 
-  readFile = this.readFile.bind(this, this.files[this.current], this.next.bind(this));
+  readFile = this.readFile.bind(
+    this,
+    this.files[this.current],
+    this.next.bind(this)
+  );
 
   if (options.transform) {
     return this.loadTransform(options.transform, function(err, transform) {
       if (err) {
-        return callback(err); 
+        return callback(err);
       }
       _this.transforms.push(transform);
       readFile();
@@ -109,7 +112,6 @@ function Hikki(options, callback) {
 */
 
 Hikki.prototype.parseFile = function parseFile(file, callback) {
-
   if (this.transforms.length) {
     // go through transform rather then normal parse
     for (var i = 0; i < this.transforms.length; i += 1) {
@@ -132,10 +134,12 @@ Hikki.prototype.parseFile = function parseFile(file, callback) {
   - `@param` callback {Function} - A function that will be called with a error or the transform module
 */
 
-Hikki.prototype.loadTransform = function loadTransform(transformName, callback) {
-  var
-    dir = process.cwd(),
-    local = path.resolve(dir, 'node_modules', transformName);
+Hikki.prototype.loadTransform = function loadTransform(
+  transformName,
+  callback
+) {
+  var dir = process.cwd(),
+    local = path.resolve(dir, "node_modules", transformName);
 
   fs.stat(local, function(err, stat) {
     if (err) {
@@ -144,14 +148,12 @@ Hikki.prototype.loadTransform = function loadTransform(transformName, callback) 
     var transform = require(local);
 
     if (!Hikki.isTransform(transform)) {
-      return callback(new Error(transformName + ' is not a valid transform'));
+      return callback(new Error(transformName + " is not a valid transform"));
     }
 
     callback(null, transform);
   });
-
 };
-
 
 /*
   Hikki::next
@@ -163,7 +165,7 @@ Hikki.prototype.loadTransform = function loadTransform(transformName, callback) 
 */
 
 Hikki.prototype.next = function next(err, filePath) {
-  if ( err ) {
+  if (err) {
     throw err;
   }
   this.current += 1;
@@ -171,11 +173,15 @@ Hikki.prototype.next = function next(err, filePath) {
     this.markdownFiles.push(filePath);
   }
   if (this.current === this.files.length) {
-
     var links = this.markdownFiles.map(Hikki.wrapLink);
 
-    if (!this.output) { // output table of contents
-      outputFile( this.options.path + '/README.md', links.join('\n'), this.callback);
+    if (!this.output) {
+      // output table of contents
+      outputFile(
+        this.options.path + "/README.md",
+        links.join("\n"),
+        this.callback
+      );
     }
     return;
   }
@@ -195,79 +201,79 @@ Hikki.prototype.next = function next(err, filePath) {
 */
 
 Hikki.prototype.readFile = function readFile(fileName, next) {
-
-  var
-    _this = this,
+  var _this = this,
     options = this.options;
 
   function handler(_payload, err, content) {
     // err is already handled
 
-    _this.parseFile({
-      name: fileName,
-      content: content
-    }, function (err, comments) {
-      if (err) {
-        return next(err);
-      }
+    _this.parseFile(
+      {
+        name: fileName,
+        content: content,
+      },
+      function(err, comments) {
+        if (err) {
+          return next(err);
+        }
 
-      if (!comments) {
-        return next();
-      }
+        if (!comments) {
+          return next();
+        }
 
-      var
-        blocks,
-        filePath = fileName.split('.'),
-        _path = _this.options.path,
-        markdownFileName;
+        var blocks,
+          filePath = fileName.split("."),
+          _path = _this.options.path,
+          markdownFileName;
 
-      // adding md on end of file
-      filePath.pop();
-      filePath.push('md');
-      filePath = filePath.join('.');
+        // adding md on end of file
+        filePath.pop();
+        filePath.push("md");
+        filePath = filePath.join(".");
 
+        if (filePath && _this.options.base) {
+          filePath = filePath.split(new RegExp(_this.options.base)).join("");
+        }
 
-      if (filePath && _this.options.base) {
-        filePath = filePath.split(new RegExp(_this.options.base))
-          .join('');
-      }
+        markdownFileName = _path
+          ? path.resolve(_path + "/" + filePath)
+          : filePath;
+        if (!comments.length) {
+          return next();
+        }
 
-      markdownFileName = _path ? path.resolve(_path + '/' + filePath) : filePath;
-      if (!comments.length) {
-        return next();
-      }
+        blocks = comments
+          .filter(Hikki.validComment(options.prefix))
+          .map(Hikki.stripLeadingSpace(_this.options))
+          .map(Hikki.appendLineNumber)
+          .map(Hikki.getKey("value"))
+          .map(Hikki.replace(options.prefix, ""))
+          .join("")
+          .trim();
 
-      blocks = comments
-        .filter(Hikki.validComment(options.prefix))
-        .map(Hikki.stripLeadingSpace(_this.options))
-        .map(Hikki.appendLineNumber)
-        .map(Hikki.getKey('value'))
-        .map(Hikki.replace(options.prefix, ''))
-        .join('')
-        .trim();
+        if (!blocks.length) {
+          return next();
+        }
 
-      if (!blocks.length) {
-        return next();
-      }
+        if (_this.logger) {
+          _this.logger.write("\n\rWriting file:" + markdownFileName);
+        }
 
-      if (_this.logger) {
-        _this.logger.write('\n\rWriting file:' +  markdownFileName);
-      }
+        if (_this.output) {
+          extend(_payload, {
+            fileName: markdownFileName,
+            content: blocks,
+            encoding: "utf8",
+          });
+          _this.output.write(JSON.stringify(_payload) + "\n");
+          return next();
+        }
 
-      if (_this.output) {
-        extend(_payload, {
-          fileName: markdownFileName,
-          content: blocks,
-          encoding: 'utf8'
+        outputFile(markdownFileName, blocks, function(err) {
+          next(err, filePath);
         });
-        _this.output.write(JSON.stringify(_payload) + '\n');
-        return next();
       }
-
-      outputFile(markdownFileName, blocks, function(err) {
-        next(err, filePath);
-      });
-    });
+    );
   }
 
   fs.stat(fileName, function(err, stat) {
@@ -278,9 +284,8 @@ Hikki.prototype.readFile = function readFile(fileName, next) {
       return next();
     }
     stat.originalFileName = fileName;
-    fs.readFile(fileName, 'utf8', handler.bind(null, stat));
+    fs.readFile(fileName, "utf8", handler.bind(null, stat));
   });
-
 };
 
 /*
@@ -294,7 +299,7 @@ Hikki.prototype.readFile = function readFile(fileName, next) {
 
 Hikki.getKey = function getKey(key) {
   return function(obj) {
-    if (typeof obj !== 'object') {
+    if (typeof obj !== "object") {
       return;
     }
     return obj[key];
@@ -313,7 +318,7 @@ Hikki.getKey = function getKey(key) {
 
 Hikki.replace = function replace(pattern, replacement) {
   return function(str) {
-    return (str || '').replace(pattern, replacement);
+    return (str || "").replace(pattern, replacement);
   };
 };
 
@@ -328,15 +333,14 @@ Hikki.replace = function replace(pattern, replacement) {
 */
 
 Hikki.appendLineNumber = function appendLineNumber(obj) {
-
   var start;
 
   if (obj.loc && obj.loc.start) {
     start = obj.loc.start;
     obj.value = obj.value
-      .split('${L}')
+      .split("${L}")
       .join(start.line)
-      .split('${C}')
+      .split("${C}")
       .join(start.column);
   }
 
@@ -352,7 +356,12 @@ Hikki.appendLineNumber = function appendLineNumber(obj) {
 */
 
 Hikki.isTransform = function isTransform(obj) {
-  if (obj && typeof obj === 'object' && typeof obj.onFile === 'function' && obj.pattern) {
+  if (
+    obj &&
+    typeof obj === "object" &&
+    typeof obj.onFile === "function" &&
+    obj.pattern
+  ) {
     return true;
   }
   return false;
@@ -373,13 +382,14 @@ Hikki.stripLeadingSpace = function stripLeadingSpace(options) {
   return function stripLeadingSpaceIterator(obj) {
     var pattern = [];
     if (obj.loc && obj.loc.start) {
-      for(var i = 0; i < obj.loc.start.column + 2; i += 1) {
-        pattern.push(' ');
+      for (var i = 0; i < obj.loc.start.column + 2; i += 1) {
+        pattern.push(" ");
       }
 
-      obj.value = obj.value.split('\n')
-        .map(Hikki.replace(new RegExp('^' + pattern.join('')), ''))
-        .join('\n');
+      obj.value = obj.value
+        .split("\n")
+        .map(Hikki.replace(new RegExp("^" + pattern.join("")), ""))
+        .join("\n");
     }
     return obj;
   };
@@ -395,7 +405,7 @@ Hikki.stripLeadingSpace = function stripLeadingSpace(options) {
 */
 
 Hikki.wrapLink = function wrapLink(link) {
-  return '- [' + link + '](' + link + ')';
+  return "- [" + link + "](" + link + ")";
 };
 
 /*
@@ -424,7 +434,7 @@ Hikki.excludeFiles = function stripLeadingSpace(exclude) {
 */
 
 Hikki.validComment = function stripLeadingSpace(prefix) {
-  var pattern = prefix ? new RegExp('^' + prefix) : null;
+  var pattern = prefix ? new RegExp("^" + prefix) : null;
   return function excludeFilesIterator(obj) {
     return prefix ? obj.value.match(pattern) : true;
   };

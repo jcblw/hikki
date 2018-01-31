@@ -10,7 +10,7 @@ If you know some markdown you can write docs!
   ========
 
   My cool foo bar plugin
-*/
+*\/
 
 function FooBar () { ... }
 ```
