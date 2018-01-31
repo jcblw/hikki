@@ -1,0 +1,48 @@
+{
+  "name": "hikki",
+  "version": "0.6.1",
+  "description": "Hikki is Japanese for Scribe, or notes. This node module with take comments from your code and mirror them as markdown files in a different directory.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run lint && npm run test-setup && nyc tap tests/*.spec.js && nyc report",
+    "docs": "./bin/hikki -f \"**/*.js\" -o docs -v -e \"node_modules|tests\"",
+    "lint": "jshint index.js lib/*.js",
+    "test-setup": "rm -rf tests/node_modules && cp -r tests/test_modules tests/node_modules"
+  },
+  "bin": {
+    "hikki": "./bin/hikki"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jcblw/hikki.git"
+  },
+  "keywords": [
+    "documentation",
+    "docs",
+    "espirmia"
+  ],
+  "author": "Jacob Lowe",
+  "license": "ISC",
+  "dependencies": {
+    "cliclopts": "^1.1.0",
+    "esprima": "^2.4.1",
+    "extend": "^2.0.0",
+    "glob": "^5.0.1",
+    "isstream": "^0.1.2",
+    "minimist": "^1.1.1",
+    "output-file": "^1.1.1"
+  },
+  "devDependencies": {
+    "jshint": "^2.7.0",
+    "nyc": "^2.1.4",
+    "tap": "^0.7.1"
+  },
+  "config": {
+    "nyc": {
+      "exclude": [
+        "tests",
+        "node_modules"
+      ]
+    }
+  }
+}

@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+
+/*
+	This is just the CLI wrapper
+*/
+
+var
+  opts = [
+    {
+      name: 'files',
+      abbr: 'f',
+      default: '**/*.js',
+      help: 'A glob of files to read comments from.'
+    },
+    {
+      name: 'output',
+      abbr: 'o',
+      help: 'A path to output doc files to, will default to output data in line delimited JSON to the STDOUT.'
+    },
+    {
+      name: 'exclude',
+      abbr: 'e',
+      default: 'node_modules',
+      help: 'A pattern to exclude files from that pattern.'
+    },
+    {
+      name: 'verbose',
+      abbr: 'v',
+      help: 'By enabling verbose mode, there will be logging outputed to the STDOUT.'
+    },
+    {
+      name: 'base',
+      abbr: 'b',
+      help: 'The base url of the files, this will exclude base path when outputting files to docs.'
+    },
+    {
+      name: 'prefix',
+      abbr: 'p',
+      help: 'The word that prefixes blocks via `/*{prefix}`.'
+    },
+    {
+      name: 'transform',
+      abbr: 't',
+      alias: ['parsers'],
+      help: 'Loads a transform to parse files other then JS files, just use the modules name here.'
+    }
+  ],
+  cliclopts = require('cliclopts'),
+  glob = require('glob'),
+  path = require('path'),
+  options = cliclopts(opts),
+  args = require('minimist')(process.argv.slice(2), options.options()),
+  cwd = process.cwd() + '/',
+  output = args.o || args.output,
+  hikki = require('..');
+
+args.output = output ? path.resolve(cwd + output) : process.stdout;
+args.exclude = (args.e || args.exclude);
+args.files = (args.f || args.files || args._);
+args.logger = (args.v || args.verbose) ? process.stdout : null;
+args.base = args.base || args.b;
+args.transform = args.t || args.transform;
+
+if (args.h || args.help) {
+	process.stdout.write('Usage: Hikki [options]\n\r');
+  options.print();
+	process.exit(0);
+}
+
+if (typeof args.files === 'string') {
+  return glob(args.files, function(err, files){
+    if (err) {
+      throw err;
+    }
+    args.files = files;
+    startHikki(args);
+  });
+}
+
+startHikki(args);
+
+function startHikki(options) {
+
+  if (!options.files || !options.files.length) {
+  	process.stderr.write('Hikki needs a valid path to files to pull comments from eg. hikki src/js/**/*.js');
+  	process.exit(1);
+  }
+
+  hikki(options, function(err) {
+    if (err) throw err;
+    process.exit(0);
+  });
+}
