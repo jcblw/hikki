@@ -10,10 +10,9 @@ Generating documentation from code is great, you do not have to context switch b
 
 # Install
 
-Currently this is not on npm, but if you clone down this repo then run.
 
 ```
-npm link
+npm i hikki --save
 ```
 
 That will symlink the bin to you npm install and you will have the `hikki` command globally. Also you can add it to you package.json and then point towards this repo using this [method](http://stackoverflow.com/questions/22988876/install-npm-module-from-gitlab-private-repository).
