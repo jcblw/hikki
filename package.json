@@ -25,17 +25,17 @@
   "license": "ISC",
   "dependencies": {
     "cliclopts": "^1.1.0",
-    "esprima": "^2.4.1",
-    "extend": "^2.0.0",
-    "glob": "^5.0.1",
+    "esprima": "^4.0.0",
+    "extend": "^3.0.1",
+    "glob": "^7.1.2",
     "isstream": "^0.1.2",
     "minimist": "^1.1.1",
     "output-file": "^1.1.1"
   },
   "devDependencies": {
     "jshint": "^2.7.0",
-    "nyc": "^2.1.4",
-    "tap": "^0.7.1"
+    "nyc": "^11.4.1",
+    "tap": "^11.1.0"
   },
   "config": {
     "nyc": {
