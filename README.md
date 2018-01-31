@@ -1,5 +1,7 @@
 # Hikki
 
+[![Build Status](https://travis-ci.org/jcblw/hikki.svg?branch=master)](https://travis-ci.org/jcblw/hikki)
+
 Hikki is Japanese for Scribe, or notes. This node module with take comments from your code and outputs them as markdown files in a different directory.
 
 ## Why?
